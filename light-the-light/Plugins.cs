@@ -1,8 +1,7 @@
 using System.ComponentModel;
 using System.Text.Json.Serialization;
-using Microsoft.SemanticKernel;
 
-public class LightsPlugin
+public class LightsManager
 {
    // Mock data for the lights
    private readonly List<Light> lights =
@@ -18,14 +17,12 @@ public class LightsPlugin
       On = 1
    }
 
-   [KernelFunction()]
    [Description("Gets a list of lights and their current state")]
    public List<Light> GetLights()
    {
       return lights;
    }
 
-   [KernelFunction()]
    [Description("Changes the state of the light")]
    public Light? ChangeState(int id, LightState newState)
    {
@@ -42,7 +39,6 @@ public class LightsPlugin
       return light;
    }
 
-   [KernelFunction()]
    [Description("Add a new light to the list of available lights")]
    public Light? AddLight(string name, LightState newState)
    {
@@ -57,7 +53,6 @@ public class LightsPlugin
       return newLight;
    }
 
-   [KernelFunction()]
    [Description("Remove a light from the list of available lights")]
    public bool RemoveLight(int id)
    {

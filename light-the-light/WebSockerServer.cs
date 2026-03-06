@@ -8,7 +8,7 @@ public class WebSocketServer
     private CancellationTokenSource? _cancellationTokenSource;
     private Task? _serverTask;
 
-    public WebSocketServer(LightsPlugin lightsPlugin)
+    public WebSocketServer(LightsManager lightsManager)
     {
         // Create web application
         var app = WebApplication.CreateBuilder();
@@ -20,14 +20,14 @@ public class WebSocketServer
         });
 
         // Register services for dependency injection
-        app.Services.AddSingleton(lightsPlugin);
+        app.Services.AddSingleton(lightsManager);
         app.Services.AddSingleton<WebSocketRequestHandler>();
         
-        // Configure logging to None
+        // Configure logging
         app.Services.AddLogging(builder =>
         {
             builder.SetMinimumLevel(LogLevel.None);
-            builder.ClearProviders();
+            builder.AddConsole();
         });
 
         // Create App

@@ -9,10 +9,10 @@ namespace VSLive.Samples.LightTheLight;
 public class WebSocketRequestHandler
 {
     private readonly ConcurrentDictionary<string, WebSocket> _connections = new();
-    private readonly LightsPlugin _lightsPlugin;
+    private readonly LightsManager _lightsPlugin;
     private readonly ILogger<WebSocketRequestHandler> _logger;
 
-    public WebSocketRequestHandler(LightsPlugin lightsPlugin, ILogger<WebSocketRequestHandler> logger)
+    public WebSocketRequestHandler(LightsManager lightsPlugin, ILogger<WebSocketRequestHandler> logger)
     {
         _lightsPlugin = lightsPlugin;
         _logger = logger;
@@ -91,7 +91,7 @@ public class WebSocketRequestHandler
                     if (request.Id.HasValue && !string.IsNullOrEmpty(request.State))
                     {
                         var newState = request.State.ToLowerInvariant() == "on" ? 
-                            LightsPlugin.LightState.On : LightsPlugin.LightState.Off;
+                            LightsManager.LightState.On : LightsManager.LightState.Off;
                         
                         var result = _lightsPlugin.ChangeState(request.Id.Value, newState);
                         _logger.LogInformation($"Light state changed: {result?.Name} -> {newState}");

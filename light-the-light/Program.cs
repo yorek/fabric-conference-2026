@@ -1,17 +1,11 @@
 ﻿// Import packages
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Azure.Identity;
 using Azure.AI.OpenAI;
 using Azure;
 using DotNetEnv;
 using System.Text.Json;
-using OpenTelemetry.Logs;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
-using Microsoft.Extensions.Logging;
-using System.Text.RegularExpressions;
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
 
 // Welcome message
 Console.WriteLine("💡 Light the Light ");
@@ -31,11 +25,15 @@ if (new string[] { deploymentName, endpoint }.Contains(string.Empty))
     return;
 }
 
-// Where log is sent to console or not
-var logToConsole = false;
-
-// Create a kernel with Azure OpenAI chat completion
-var builder = Kernel.CreateBuilder();
+// Enable Application Insights telemetry
+if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
+{
+    ApplicationInsightsTelemetry.Configure(applicationInsightsConnectionString);
+}
+else
+{
+    Console.WriteLine("⚠️  Application Insights connection string is not set. Telemetry is disabled.");
+}
 
 // Create the Azure OpenAI client
 AzureOpenAIClient azureClient = apiKey switch
@@ -44,68 +42,49 @@ AzureOpenAIClient azureClient = apiKey switch
     _ => new(new Uri(endpoint), new AzureKeyCredential(apiKey))
 };
 
-// Add Azure OpenAI chat completion
-builder.AddAzureOpenAIChatCompletion(deploymentName, azureClient);
+// Add the lights manager
+var lightsManager = new LightsManager();
 
-// Enable Application Insights telemetry
-if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
+// Create function tools from the LightsManager instance methods
+var tools = new List<AITool>
 {
-    var loggerFactory = ApplicationInsightsTelemetry.Configure(applicationInsightsConnectionString);
-    builder.Services.AddSingleton(loggerFactory);
-}
-else
-{
-    Console.WriteLine("⚠️  Application Insights connection string is not set. Telemetry is disabled.");
-    builder.Services.AddLogging(services =>
-    {
-        // services.AddConsole(options =>
-        // {
-        //     options.LogToStandardErrorThreshold = LogLevel.None; // Prevent duplicate output
-        // });
-        services.AddProvider(new CustomSemanticKernelLoggerProvider());
-        services.SetMinimumLevel(LogLevel.Information);
-    });
-    logToConsole = true;
-}
-
-// Build the kernel
-Kernel kernel = builder.Build();
-
-// Get the services
-var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
-
-// Add the lights plugin 
-var lightsPlugin = new LightsPlugin();
-kernel.Plugins.AddFromObject(lightsPlugin);
-
-// List the available plugins
-Console.WriteLine("🤖 Functions (or tools) I can use:");
-foreach (var plugin in kernel.Plugins)
-{
-    Console.WriteLine($"\t{plugin.Name}: " + string.Join(", ", plugin.Select(f => f.Name)));
-}
-
-// Enable planning
-OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new()
-{
-    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+    AIFunctionFactory.Create(lightsManager.GetLights),
+    AIFunctionFactory.Create(lightsManager.ChangeState),
+    AIFunctionFactory.Create(lightsManager.AddLight),
+    AIFunctionFactory.Create(lightsManager.RemoveLight)
 };
 
+// List the available tools
+Console.WriteLine("🤖 Functions (or tools) I can use:");
+foreach (var tool in tools)
+{
+    Console.WriteLine($"\t{tool.Name}");
+}
+
+// Create the agent using Microsoft Agent Framework
+AIAgent agent = azureClient
+    .GetChatClient(deploymentName)
+    .AsIChatClient()
+    .AsAIAgent(
+        name: "LightAssistant",
+        instructions: """
+            You are a helpful home assistant. You can turn lights on and off, add new lights, and remove lights. Use the available functions to perform these actions.
+            IMPORTANT: The state of the lights can change at any time from external sources (e.g. a web interface). 
+            Always call GetLights to check the current state before answering any question about the status of the lights. Never rely on your memory of previous states.
+            If the user ask for something that is not related to lights, respond that you are a home assistant and can only help with lights.
+            """,
+        tools: tools);
+
+// Create a session for multi-turn conversation
+AgentSession session = await agent.CreateSessionAsync();
+
 // Start the web socket server
-WebSocketServer webSocketServer = new(lightsPlugin);
+WebSocketServer webSocketServer = new(lightsManager);
 Task webSocketServerTask = webSocketServer.StartAsync("http://localhost:5000");
-
-// Create a history store the conversation
-var history = new ChatHistory();
-
-history.AddSystemMessage("""
-You are a helpful home assistant. You can turn lights on and off, add new lights, and remove lights. Use the available functions to perform these actions.
-If the user ask for something that is not related to lights, respond that you are a home assistant and can only help with lights.
-""");
 
 // Initiate a back-and-forth chat
 string? userInput;
-Console.WriteLine("🚀 Ready! Type your message below (or /exit to quit, /history to see the chat history):");
+Console.WriteLine("🚀 Ready! Type your message below (or /exit to quit):");
 do
 {
     // Check if cancellation was requested
@@ -131,19 +110,39 @@ do
 
     if (userInput is "/history")
     {
-        foreach (var message in history)
+        if (session.TryGetInMemoryChatHistory(out var history))
         {
-            Console.WriteLine($"HISTORY> {message.Role}: {message.Content}");
-
-            if (message.Metadata != null && message.Metadata.Count > 0)
+            foreach (var message in history)
             {
-                var metadataJson = JsonSerializer.Serialize(message.Metadata, new JsonSerializerOptions
+                Console.WriteLine($"HISTORY> {message.Role}: {message.Text}");
+
+                if (message.AdditionalProperties != null && message.AdditionalProperties.Count > 0)
                 {
-                    WriteIndented = true
-                });
-                Console.WriteLine($"HISTORY> Metadata:");
-                Console.WriteLine(metadataJson);
+                    var metadataJson = JsonSerializer.Serialize(message.AdditionalProperties, new JsonSerializerOptions
+                    {
+                        WriteIndented = true
+                    });
+                    Console.WriteLine($"HISTORY> Metadata:");
+                    Console.WriteLine(metadataJson);
+                }
+
+                // Show tool call details
+                foreach (var content in message.Contents)
+                {
+                    if (content is FunctionCallContent functionCall)
+                    {
+                        Console.WriteLine($"HISTORY>   🔧 Tool Call: {functionCall.Name}({JsonSerializer.Serialize(functionCall.Arguments)})");
+                    }
+                    else if (content is FunctionResultContent functionResult)
+                    {
+                        Console.WriteLine($"HISTORY>   📋 Tool Result: {functionResult.Result}");
+                    }
+                }
             }
+        }
+        else
+        {
+            Console.WriteLine("⚠️ Chat history is not available for this session type.");
         }
 
         continue;
@@ -151,40 +150,29 @@ do
 
     if (!string.IsNullOrEmpty(userInput))
     {
-        // Add user input
-        history.AddUserMessage(userInput);
-
-        // Get the streaming response from the AI
+        // Get the streaming response from the AI agent
         Console.Write("🤔 thinking...");
-        if (logToConsole) Console.WriteLine();
         string fullResponse = string.Empty;
         bool responseStarted = false;
-        await foreach (var streamingResult in chatCompletionService.GetStreamingChatMessageContentsAsync(
-            history,
-            executionSettings: openAIPromptExecutionSettings,
-            kernel: kernel))
+        await foreach (var update in agent.RunStreamingAsync(userInput, session))
         {
-            if (!string.IsNullOrEmpty(streamingResult.Content))
+            if (!string.IsNullOrEmpty(update.Text))
             {
                 if (!responseStarted)
                 {
-                    if (!logToConsole) Console.WriteLine();
+                    Console.WriteLine();
                     Console.Write("🤖 > ");
                     responseStarted = true;
                 }
+                Console.Write(update.Text);
+                fullResponse += update.Text;
             }
             else
             {
-                if (!logToConsole) Console.Write(".");
+                Console.Write(".");
             }
-
-            Console.Write(streamingResult.Content);
-            fullResponse += streamingResult.Content;
         }
         Console.WriteLine();
-
-        // Add the complete message from the agent to the chat history
-        history.AddAssistantMessage(fullResponse);
 
         // Notify the web app about the light state change
         await webSocketServer.BroadcastLightUpdateAsync();

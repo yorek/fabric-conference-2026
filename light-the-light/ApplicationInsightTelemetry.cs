@@ -13,18 +13,20 @@ public class ApplicationInsightsTelemetry
             .CreateDefault()
             .AddService("TelemetryApplicationInsightsQuickstart");
 
-        // Enable model diagnostics with sensitive data.
-        AppContext.SetSwitch("Microsoft.SemanticKernel.Experimental.GenAI.EnableOTelDiagnosticsSensitive", true);
+        // Enable OpenTelemetry diagnostics for AI operations
+        AppContext.SetSwitch("Microsoft.Extensions.AI.EnableOTelDiagnosticsSensitive", true);
 
         var traceProvider = Sdk.CreateTracerProviderBuilder()
             .SetResourceBuilder(resourceBuilder)
-            .AddSource("Microsoft.SemanticKernel*")
+            .AddSource("Microsoft.Agents*")
+            .AddSource("Microsoft.Extensions.AI*")
             .AddAzureMonitorTraceExporter(options => options.ConnectionString = applicationInsightsConnectionString)
             .Build();
 
         var meterProvider = Sdk.CreateMeterProviderBuilder()
             .SetResourceBuilder(resourceBuilder)
-            .AddMeter("Microsoft.SemanticKernel*")
+            .AddMeter("Microsoft.Agents*")
+            .AddMeter("Microsoft.Extensions.AI*")
             .AddAzureMonitorMetricExporter(options => options.ConnectionString = applicationInsightsConnectionString)
             .Build();
 
