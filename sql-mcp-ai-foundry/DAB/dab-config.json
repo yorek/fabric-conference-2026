@@ -1,0 +1,81 @@
+{
+  "$schema": "https://github.com/Azure/data-api-builder/releases/download/v1.7.90/dab.draft.schema.json",
+  "data-source": {
+    "database-type": "mssql",
+    "connection-string": "@env('CONNECTION_STRING')"
+  },
+  "runtime": {
+    "rest": {
+      "enabled": true,
+      "path": "/api",
+      "request-body-strict": true
+    },
+    "graphql": {
+      "enabled": true,
+      "path": "/graphql",
+      "allow-introspection": true
+    },
+    "mcp": {
+      "enabled": true,
+      "path": "/mcp",
+      "dml-tools": true
+    },
+    "host": {
+      "cors": {
+        "origins": [],
+        "allow-credentials": false
+      },
+      "authentication": {
+        "provider": "AppService"
+      },
+      "mode": "development"
+    }
+  },
+  "entities": {
+    "WikipediaArticles": {
+      "source": {
+        "object": "dbo.WikipediaArticles",
+        "type": "table"        
+      },
+      "fields": [
+        {
+          "name": "id",
+          "description": "Unique identifier for each article",          
+          "primary-key": true          
+        },
+        {
+          "name": "url",
+          "description": "Title of the article"          
+        },
+        {
+          "name": "title",
+          "description": "Title of the article"          
+        },
+        {
+          "name": "text",
+          "description": "The content of the article"          
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "WikipediaArticles",
+          "plural": "WikipediaArticles"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "*"              
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
