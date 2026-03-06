@@ -17,22 +17,11 @@ Env.Load();
 var deploymentName = Env.GetString("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME") ?? string.Empty;
 var endpoint = Env.GetString("AZURE_OPENAI_ENDPOINT") ?? string.Empty;
 var apiKey = Env.GetString("AZURE_OPENAI_KEY") ?? string.Empty;
-var applicationInsightsConnectionString = Env.GetString("APPLICATION_INSIGHTS_CONNECTION_STRING") ?? string.Empty;
 
 if (new string[] { deploymentName, endpoint }.Contains(string.Empty))
 {
     Console.WriteLine("⚠️ Missing required environment variables. Please check your .env file.");
     return;
-}
-
-// Enable Application Insights telemetry
-if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
-{
-    ApplicationInsightsTelemetry.Configure(applicationInsightsConnectionString);
-}
-else
-{
-    Console.WriteLine("⚠️  Application Insights connection string is not set. Telemetry is disabled.");
 }
 
 // Create the Azure OpenAI client
@@ -85,8 +74,8 @@ Task webSocketServerTask = webSocketServer.StartAsync("http://localhost:5000");
 // Initiate a back-and-forth chat
 string? userInput;
 Console.WriteLine("🚀 Ready! Type your message below (or /exit to quit):");
-do
-{
+var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+do {
     // Check if cancellation was requested
     if (webSocketServer.IsCancellationRequested)
     {
@@ -118,10 +107,7 @@ do
 
                 if (message.AdditionalProperties != null && message.AdditionalProperties.Count > 0)
                 {
-                    var metadataJson = JsonSerializer.Serialize(message.AdditionalProperties, new JsonSerializerOptions
-                    {
-                        WriteIndented = true
-                    });
+                    var metadataJson = JsonSerializer.Serialize(message.AdditionalProperties, jsonOptions);
                     Console.WriteLine($"HISTORY> Metadata:");
                     Console.WriteLine(metadataJson);
                 }
@@ -131,7 +117,7 @@ do
                 {
                     if (content is FunctionCallContent functionCall)
                     {
-                        Console.WriteLine($"HISTORY>   🔧 Tool Call: {functionCall.Name}({JsonSerializer.Serialize(functionCall.Arguments)})");
+                        Console.WriteLine($"HISTORY>   🔧 Tool Call: {functionCall.Name}({JsonSerializer.Serialize(functionCall.Arguments, jsonOptions)})");
                     }
                     else if (content is FunctionResultContent functionResult)
                     {
