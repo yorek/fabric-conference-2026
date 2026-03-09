@@ -1,7 +1,0 @@
-POST http://localhost:5000/api/WikipediaArticles
-
-{
-    "title": "AI Agents",
-    "url": "https://local.wikipedia.org/wiki/AI_Agents",
-    "text": "AI Agents are autonomous entities that use artificial intelligence to perform tasks, make decisions, and interact with their environment. They can range from simple chatbots to complex systems capable of learning and adapting over time. AI Agents are increasingly being used in various fields such as customer service, healthcare, and robotics to enhance efficiency and provide innovative solutions."
-}

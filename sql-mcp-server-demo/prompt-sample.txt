@@ -1,6 +1,0 @@
-Note: use the Wikipedia Agent to find information on Isaac Asimov.
-
-Is there an article on Isaac Asimov?
-
-Cool, now I need to create an article on AI Agents. Create the title and an initial context for me thanks. Be brief, just one paragraph
-
