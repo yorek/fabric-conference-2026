@@ -17,7 +17,7 @@ param(
 
 $ScriptVersion = "0.1.0"
 $MinimumDabVersion = "1.7.90"
-$DockerDabVersion = $MinimumDabVersion
+$DockerDabVersion = "latest" #$MinimumDabVersion
 
 Set-StrictMode -Version Latest
 

@@ -1060,7 +1060,7 @@ try {
     if ($canUseFree) {
     Write-StepStatus "" "Success" "Free tier available ($($freeCheckElapsed)`s)"
     } else {
-    Write-StepStatus "" "Success" "Free tier unavailable, using DTU ($($freeCheckElapsed)`s)"
+    Write-StepStatus "" "Success" "Free tier unavailable, using Hyperscale Serverless ($($freeCheckElapsed)`s)"
     }
 
     if ($canUseFree) {
@@ -1081,7 +1081,7 @@ try {
             $dbType = "Free-tier"
             $dbCreated = $true
         } else {
-            Write-StepStatus "" "Info" "Free-tier failed, trying Basic DTU"
+            Write-StepStatus "" "Info" "Free-tier failed, trying Hyperscale Serverless"
         }
     }
     
@@ -1091,12 +1091,14 @@ try {
             '--name', $sqlDb,
             '--server', $sqlServer,
             '--resource-group', $rg,
-            '--edition', 'Basic',
-            '--service-objective', 'Basic',
+            '--edition', 'Hyperscale',
+            '--compute-model', 'Serverless',
+            '--family', 'Gen5',
+            '--capacity', '2',
             '--tags') + $commonTagValues
         $fallbackDbResult = Invoke-AzCli -Arguments $fallbackDbArgs
         OK $fallbackDbResult "Failed to create fallback SQL database"
-        $dbType = "Basic DTU"
+        $dbType = "Hyperscale Serverless"
     }
     
     $dbElapsed = [math]::Round(((Get-Date) - $dbStartTime).TotalSeconds, 1)
@@ -1177,6 +1179,9 @@ try {
     $validationStartTime = Get-Date
     
     $validationConnectionString = "Server=tcp:${sqlServerFqdn},1433;Database=${sqlDb};Authentication=Active Directory Default;"
+    $envFilePath = Join-Path $PSScriptRoot ".env"
+    $envFileContent = "MSSQL_CONNECTION_STRING='$validationConnectionString'"
+    Set-Content -Path $envFilePath -Value $envFileContent -Encoding Ascii -Force
     
     $env:MSSQL_CONNECTION_STRING = $validationConnectionString
     

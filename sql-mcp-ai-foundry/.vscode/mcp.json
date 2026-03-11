@@ -1,6 +1,6 @@
 {
   "servers": {
-    "sql-mcp-server": {
+    "local-wikipedia-mcp-server": {
       "type": "http",
       "url": "http://localhost:5000/mcp"
     }

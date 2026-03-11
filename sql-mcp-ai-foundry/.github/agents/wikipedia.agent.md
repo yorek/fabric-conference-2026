@@ -1,7 +1,7 @@
 ---
 description: Find, Create, Update or Delete items in the Wikipedia Local Knowledge database. 
 name: WikipediaAgent
-tools: ['sql-mcp-server/*']
+tools: ['local-wikipedia-mcp-server/*']
 model: ['GPT-5.2'] 
 ---
 
