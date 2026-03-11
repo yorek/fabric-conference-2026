@@ -1,0 +1,28 @@
+# Exclude VCS metadata
+.git
+.gitignore
+
+# Logs and transcripts
+*.log
+dab-deploy-*.log
+
+# Deployment summaries and artifacts
+dab-deploy-*.json
+
+# Local editor / OS cruft
+*.swp
+*.tmp
+Thumbs.db
+Desktop.ini
+
+# PowerShell helper scripts not needed in image
+refactor-prompt.ps1
+test-redact.ps1
+
+# Node / Python / other potential future dirs
+node_modules/
+__pycache__/
+
+# Dockerfile is needed; keep dab-config.json
+# Ensure not excluding dab-config.json
+!dab-config.json
