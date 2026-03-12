@@ -1,3 +1,6 @@
+alter database current set compatibility_level = 170;
+go
+
 /*
 	Cleanup if needed
 */
@@ -33,3 +36,19 @@ go
 alter table dbo.WikipediaArticles
 add constraint pk__dbo_WikipediaArticles primary key (id)
 go
+
+
+/*
+	Create stored procedure for hybrid-search
+*/
+create or alter procedure dbo.WikipediaArticlesSearch
+@text nvarchar(1000)
+as
+select
+	*
+from
+	dbo.WikipediaArticles
+where	
+	regexp_like(title, @text, 'i')
+-- or
+-- 	regexp_like([text], @text, 'i')

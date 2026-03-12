@@ -35,25 +35,28 @@
     "WikipediaArticles": {
       "source": {
         "object": "dbo.WikipediaArticles",
-        "type": "table"        
+        "type": "table"
       },
       "fields": [
         {
           "name": "id",
-          "description": "Unique identifier for each article",          
-          "primary-key": true          
+          "description": "Unique identifier for each article",
+          "primary-key": true
         },
         {
           "name": "url",
-          "description": "Title of the article"          
+          "description": "Title of the article",
+          "primary-key": false
         },
         {
           "name": "title",
-          "description": "Title of the article"          
+          "description": "Title of the article",
+          "primary-key": false
         },
         {
           "name": "text",
-          "description": "The content of the article"          
+          "description": "The content of the article",
+          "primary-key": false
         }
       ],
       "graphql": {
@@ -71,7 +74,66 @@
           "role": "anonymous",
           "actions": [
             {
-              "action": "*"              
+              "action": "*"
+            }
+          ]
+        }
+      ]
+    },
+    "WikipediaArticlesSearch": {
+      "source": {
+        "object": "dbo.WikipediaArticlesSearch",
+        "type": "stored-procedure",
+        "parameters": [
+          {
+            "name": "text",
+            "required": false,
+            "description": "regular expression used to find the desired content"
+          }
+        ]
+      },
+       "fields": [
+        {
+          "name": "id",
+          "description": "Unique identifier for each article",
+          "primary-key": true
+        },
+        {
+          "name": "url",
+          "description": "Title of the article",
+          "primary-key": false
+        },
+        {
+          "name": "title",
+          "description": "Title of the article",
+          "primary-key": false
+        },
+        {
+          "name": "text",
+          "description": "The content of the article",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "operation": "query",
+        "type": {
+          "singular": "WikipediaArticlesSearch",
+          "plural": "WikipediaArticlesSearches"
+        }
+      },
+      "rest": {
+        "enabled": true,
+        "methods": [
+          "post"
+        ]
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "*"
             }
           ]
         }
