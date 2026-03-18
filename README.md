@@ -2,8 +2,8 @@
 
 Demos and resources used at FABCON and SQLCON 2026. 
 
-Check out all the samples using SQL and AI here: https://ai.awesome.azuresql.dev/
-Detailed FAQ page on many questions on AI and Vector with SQL here: https://aka.ms/sqlai
+- Check out all the samples using SQL and AI here: https://ai.awesome.azuresql.dev/
+- Detailed FAQ page on many questions on AI and Vector with SQL here: https://aka.ms/sqlai
 
 ## From Vectors to Agents - Building AI-Powered Solutions with Microsoft SQL
 
