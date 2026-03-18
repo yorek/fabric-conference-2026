@@ -50,5 +50,5 @@ from
 	dbo.WikipediaArticles
 where	
 	regexp_like(title, @text, 'i')
--- or
--- 	regexp_like([text], @text, 'i')
+or
+	regexp_like([text], @text, 'i')

@@ -37,6 +37,7 @@
         "object": "dbo.WikipediaArticles",
         "type": "table"
       },
+      "description": "Table with articles from Wikipedia used for local knowledge",
       "fields": [
         {
           "name": "id",
@@ -45,7 +46,7 @@
         },
         {
           "name": "url",
-          "description": "Title of the article",
+          "description": "Url of the article",
           "primary-key": false
         },
         {
@@ -81,6 +82,7 @@
       ]
     },
     "WikipediaArticlesSearch": {
+      "description": "Search for the specified content in the WikipediaArticles table using regular expressions",
       "source": {
         "object": "dbo.WikipediaArticlesSearch",
         "type": "stored-procedure",
@@ -100,7 +102,7 @@
         },
         {
           "name": "url",
-          "description": "Title of the article",
+          "description": "Url of the article",
           "primary-key": false
         },
         {
