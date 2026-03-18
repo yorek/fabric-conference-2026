@@ -1,4 +1,4 @@
-use vslive2025_redmond
+use JSONTest
 go
 
 drop table if exists dbo.user_phones;

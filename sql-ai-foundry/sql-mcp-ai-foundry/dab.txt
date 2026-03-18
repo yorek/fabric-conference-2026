@@ -1,0 +1,6 @@
+dab init --database-type mssql --host-mode development --connection-string "@env('MSSQL_CONNECTION_STRING')"
+
+dab add WikipediaArticles --source dbo.WikipediaArticles --permissions "anonymous:*"
+
+dab add WikipediaArticlesSearch --source "dbo.WikipediaArticlesSearch" --source.type "StoredProcedure" --permissions "anonymous:*" --parameters.name "text" --parameters.default ""
+

@@ -1,4 +1,4 @@
-use vslive2025_redmond;
+use JSONTest;
 go
 
 /*
@@ -51,17 +51,6 @@ output
 	inserted.*
 where 
     id = 42;
-
--- Add Phone Number (generates an error in CTP 2.1. Will be fixed in RC0)
-update 
-	dbo.users_json
-set
-	json_data.modify(	            		
-			'append $.phoneNumbers',
-			cast('{"type": "fax","number": "212 555-1234"}' as json)
-			)
-where 
-	id = 42
 
 -- View result
 select * from dbo.users_json where id = 42

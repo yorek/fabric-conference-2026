@@ -1,4 +1,4 @@
-use vslive2025_redmond;
+use JSONTest;
 go
 
 drop table if exists dbo.test_json_index;
@@ -47,6 +47,7 @@ go
 create json index ixj on dbo.test_json_index(document)
 go
 
+-- simulate much more rows in the table to have a better estimation of index usage
 update statistics test_json_index with rowcount = 10000000;
 go
 
@@ -78,7 +79,7 @@ delete from dbo.test_json_index where id < 0
 
 -- Range filters are also supported by json index
 select * from dbo.test_json_index
-where cast(json_value(document, '$.id') as int) between 100 and 125;
+where cast(json_value(document, '$.id') as int) between 100 and 115;
 go
 
 select * from dbo.test_json_index

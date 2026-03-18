@@ -1,4 +1,4 @@
-use vslive2025_redmond;
+use JSONTest;
 go
 
 select * from dbo.users;

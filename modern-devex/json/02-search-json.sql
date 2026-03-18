@@ -1,4 +1,4 @@
-use vslive2025_redmond;
+use JSONTest;
 go
 
 -- Find user by phone number, searching in the phoneNumbers array of objects

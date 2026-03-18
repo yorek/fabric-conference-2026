@@ -1,7 +1,7 @@
 /*
     Code used in the screenshot of the VS Live 2025 Redmond HQ Slide deck
 */
-use vslive2025_redmond
+use JSONTest
 go
 
 declare @emailValue nvarchar(100) = 'jd@acme.com';
