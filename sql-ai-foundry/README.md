@@ -36,3 +36,10 @@ An end-to-end demo showcasing SQL Server 2025 AI capabilities together with [Dat
   - **Semantic reranking** of hybrid-search results using a Cohere model hosted on Azure AI Foundry
 - Uses [Data API Builder](https://aka.ms/dab) (`DAB/dab-config.json`) to expose the `WikipediaArticles` table through REST, GraphQL, and an MCP endpoint — no custom API code required
 - Includes a GitHub Copilot agent definition (`.github/agents/wikipedia.agent.md`) that connects to the DAB MCP server and lets you find, create, update, or delete Wikipedia articles using natural language directly from VS Code
+
+### AI Agents 
+
+- Insurance Agent Sample: https://github.com/Azure-Samples/azure-sql-db-chat-sk/tree/insurance-chatbot-demo
+
+- Generalized - Specialized Agent Sample: https://github.com/Azure-Samples/azure-sql-nl2sql 
+
